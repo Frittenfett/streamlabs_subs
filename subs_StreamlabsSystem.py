@@ -42,10 +42,11 @@ def Init():
         settings = {
             "blankPriceName": "Trostpreis {0} {1}",
             "blankCurrencyPrice": 500,
+            "onSubGiftGiveGifterThePrice": 1,
             "languagePreMessageSubgift": "@{0} gifted ein Sub an @{1}.",
             "languagePreMessageAnonSubgift": "Jemand anonymes gifted ein Sub an @{1}.",
-            "languagePreMessageSub": "@{0} danke fuer deinen {1}. Resub <3",
-            "languagePreMessageResub": "@{0} danke fuer deinen ersten Sub <3",
+            "languagePreMessageResub": "@{0} danke fuer deinen {1}. Resub <3",
+            "languagePreMessageSub": "@{0} danke fuer deinen ersten Sub <3",
             "languageAsThanks": "Als kleinen Dank bekommt @{0}: {1}"
         }
     return
@@ -69,8 +70,12 @@ def Execute(data):
 
             if tags["msg-id"] == "subgift":
                 message = settings["languagePreMessageSubgift"].format(tags["login"], tags["msg-param-recipient-display-name"])
-                recipientId = tags["msg-param-recipient-id"]
-                recipientName = tags["msg-param-recipient-display-name"]
+                if settings["onSubGiftGiveGifterThePrice"]:
+                    recipientId = tags["user-id"]
+                    recipientName = tags["login"]
+                else:
+                    recipientId = tags["msg-param-recipient-id"]
+                    recipientName = tags["msg-param-recipient-display-name"]
             if tags["msg-id"] == "anonsubgift":
                 message = settings["languagePreMessageAnonSubgift"].format(tags["msg-param-recipient-display-name"])
                 recipientId = tags["msg-param-recipient-id"]
@@ -81,7 +86,7 @@ def Execute(data):
                 recipientName = tags["login"]
             elif tags["msg-id"] == "sub":
                 message = settings["languagePreMessageSub"].format(tags["login"])
-                recipientId = tags["msg-param-recipient-id"]
+                recipientId = tags["user-id"]
                 recipientName = tags["login"]
             else:
                 return

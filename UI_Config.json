@@ -15,6 +15,13 @@
         "tooltip": "Blank Currency Amount",
         "group": "General"
     },
+    "onSubGiftGiveGifterThePrice": {
+        "type": "checkbox",
+        "value": 1,
+        "label": "Give SubGifter The Price?",
+        "tooltip": "onSubGiftGiveGifterThePrice",
+        "group": "General"
+    },
     "languagePreMessageSubgift": {
         "type": "textbox",
         "value": "@{0} gifted ein Sub an @{1}.",
