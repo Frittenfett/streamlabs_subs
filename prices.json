@@ -1,0 +1,10 @@
+[
+  {
+    "name": "Amazing Currency Price",
+    "chance": 500,
+    "type": "currency",
+    "value": 3000,
+    "sound": null,
+    "soundVolume": 1.00
+  }
+]

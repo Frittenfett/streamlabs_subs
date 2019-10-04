@@ -1,0 +1,53 @@
+﻿{
+    "output_file": "settings.json",
+
+    "blankPriceName": {
+        "type": "textbox",
+        "value": "Trostpreis {0} {1}",
+        "label": "Name of currency price when user gets a blank",
+        "tooltip": "blankPriceName",
+        "group": "General"
+    },
+    "blankCurrencyPrice": {
+        "type": "numberbox",
+        "value": 500,
+        "label": "Blank Currency Amount",
+        "tooltip": "Blank Currency Amount",
+        "group": "General"
+    },
+    "languagePreMessageSubgift": {
+        "type": "textbox",
+        "value": "@{0} gifted ein Sub an @{1}.",
+        "label": "languagePreMessageSubgift",
+        "tooltip": "languagePreMessageSubgift",
+        "group": "Language"
+    },
+    "languagePreMessageAnonSubgift": {
+        "type": "textbox",
+        "value": "Jemand anonymes gifted ein Sub an @{1}.",
+        "label": "languagePreMessageAnonSubgift",
+        "tooltip": "languagePreMessageAnonSubgift",
+        "group": "Language"
+    },
+    "languagePreMessageResub": {
+        "type": "textbox",
+        "value": "@{0} danke fuer deinen {1}. Resub <3",
+        "label": "languagePreMessageResub",
+        "tooltip": "languagePreMessageResub",
+        "group": "Language"
+    },
+    "languagePreMessageSub": {
+        "type": "textbox",
+        "value": "@{0} danke fuer deinen ersten Sub <3",
+        "label": "languagePreMessageSub",
+        "tooltip": "languagePreMessageSub",
+        "group": "Language"
+    },
+    "languageAsThanks": {
+        "type": "textbox",
+        "value": "Als kleinen Dank bekommt @{0}: {1}",
+        "label": "languageAsThanks",
+        "tooltip": "languageAsThanks",
+        "group": "Language"
+    },
+}
