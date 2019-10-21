@@ -1,0 +1,11 @@
+[
+  {
+    "name": "Amazing Package",
+    "chance": 500,
+    "type": "steamkey",
+    "value": 0,
+    "jackpotValue": 0,
+    "sound": null,
+    "soundVolume": 1.00
+  }
+]

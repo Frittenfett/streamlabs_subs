@@ -57,4 +57,40 @@
         "tooltip": "languageAsThanks",
         "group": "Language"
     },
+
+    "languageJackpot": {
+        "type": "textbox",
+        "value": "JACKPOT!!!!111EinsElf @{0} bekommt unglaubliche {1} {2}! Jackpot ist nun wieder leer.",
+        "label": "languageJackpot",
+        "tooltip": "languageJackpot",
+        "group": "Language"
+    },
+    "languageKeyError": {
+        "type": "textbox",
+        "value": "You would have won a random steam key.... But this streamer is poor and has no keys lel",
+        "label": "languageKeyError",
+        "tooltip": "languageKeyError",
+        "group": "Language"
+    },
+    "languageSteamKeyWhisperPublic": {
+        "type": "textbox",
+        "value": "Der Key wurde dir eben via Twitch gewhispert.",
+        "label": "languageSteamKeyWhisperPublic",
+        "tooltip": "languageSteamKeyWhisperPublic",
+        "group": "Language"
+    },
+    "languageSteamKeyWhisper": {
+        "type": "textbox",
+        "value": "Hallo {0}, ich wuensch dir viel Spass mit dem Spiel {1}. Der Code hierfuer ist {2}",
+        "label": "languageSteamKeyWhisper",
+        "tooltip": "languageSteamKeyWhisper",
+        "group": "Language"
+    },
+    "languageJackPotAdded": {
+        "type": "textbox",
+        "value": "{0} {1} wurden in den Jackpot hinzugefuegt. Dieser beinhaltet nun {2} {1}.",
+        "label": "languageJackPotAdded",
+        "tooltip": "languageJackPotAdded",
+        "group": "Language"
+    },
 }
