@@ -6,3 +6,4 @@
 
 * v0.1.0 Untested Code
 * v0.5.0 Make code work
+* v0.9.0 Put everything from the gachapon repository to this one

@@ -17,9 +17,9 @@ clr.AddReference("IronPython.Modules.dll")
 # ---------------------------------------
 ScriptName = "Subs"
 Website = "https://www.twitch.tv/frittenfettsenpai"
-Description = "Sub Event Listener."
+Description = "Sub Event Listener & Gachapon."
 Creator = "frittenfettsenpai"
-Version = "0.5.0"
+Version = "0.9.0"
 
 reUserNotice = re.compile(r"(?:^(?:@(?P<irctags>[^\ ]*)\ )?:tmi\.twitch\.tv\ USERNOTICE)")
 
@@ -27,11 +27,12 @@ reUserNotice = re.compile(r"(?:^(?:@(?P<irctags>[^\ ]*)\ )?:tmi\.twitch\.tv\ USE
 #   [Required] Intialize Data (Only called on Load)
 # ---------------------------------------
 def Init():
-    global prices, settings, jackpot, steamkeys
+    global prices, settings, jackpot, steamkeys, gachaponprices
     pricesfile = os.path.join(os.path.dirname(__file__), "data_prices.json")
     jackpotfile = os.path.join(os.path.dirname(__file__), "data_jackpot.txt")
     steamkeysfile = os.path.join(os.path.dirname(__file__), "data_steamkeys.json")
     settingsfile = os.path.join(os.path.dirname(__file__), "settings.json")
+    gachaponfile = os.path.join(os.path.dirname(__file__), "gachapon.json")
 
     try:
         with codecs.open(pricesfile, encoding="utf-8-sig", mode="r") as f:
@@ -56,6 +57,15 @@ def Init():
             "languageSteamKeyWhisperPublic": "Der Key wurde dir eben via Twitch gewhispert.",
             "languageSteamKeyWhisper": "Hallo {0}, ich wuensch dir viel Spass mit dem Spiel {1}. Der Code hierfuer ist {2}.",
             "languageJackPotAdded": "{0} {1} wurden in den Jackpot hinzugefuegt. Dieser beinhaltet nun {2} {1}.",
+            "enableGachapon": False,
+            "gachaponcommand": "!spin",
+            "tryCosts": 1000,
+            "userCooldown": 600,
+            "soundVolume": 1,
+            "languageNoMoney": "@{0} you need atleast {1} {2}!",
+            "languageCooldown": "@{0} you have to wait {1} seconds to use {2} again!",
+            "languageWin": "@{0} wins: {1} (Chance {2}%)",
+            "languageNothing": "Nothing",
         }
 
     try:
@@ -70,6 +80,12 @@ def Init():
     except:
         steamkeys = []
 
+    try:
+        with codecs.open(gachaponfile, encoding="utf-8-sig", mode="r") as f:
+            gachaponprices = json.load(f, encoding="utf-8")
+    except:
+        gachaponprices = []
+
     return
 
 
@@ -77,8 +93,11 @@ def Init():
 #   [Required] Execute Data / Process Messages
 # ---------------------------------------
 def Execute(data):
-    global prices, settings, jackpot
+    global prices, settings, jackpot, gachaponprices
 
+    # ========================================
+    # Sub Triggered Events
+    # ========================================
     if data.IsRawData() and data.IsFromTwitch():
         usernotice = reUserNotice.search(data.RawData)
         if usernotice:
@@ -86,7 +105,6 @@ def Execute(data):
             tags = dict(re.findall(r"([^=]+)=([^;]*)(?:;|$)", usernotice.group("irctags")))  # https://dev.twitch.tv/docs/irc/tags/
             priceWon = None
             jackpotPriceValue = 0
-            # Parent.SendTwitchMessage(str(tags))
 
             if tags["msg-id"] == "subgift":
                 message = settings["languagePreMessageSubgift"].format(tags["login"], tags["msg-param-recipient-display-name"])
@@ -170,6 +188,61 @@ def Execute(data):
                 message = message + ". " + settings["languageJackPotAdded"].format(str(jackpotPriceValue), Parent.GetCurrencyName(), str(jackpot))
             Parent.SendTwitchMessage(message)
             AddPriceToHistory(recipientName, priceWon, message)
+
+    # ========================================
+    # Gachapon System
+    # ========================================
+    if data.IsChatMessage():
+        user = data.User
+        username = Parent.GetDisplayName(user)
+
+        if settings["enableGachapon"] and data.GetParam(0).lower() == settings["gachaponcommand"]:
+            if Parent.IsOnUserCooldown("Gachapon", settings["gachaponcommand"], user) and Parent.HasPermission(user, "Caster", "") == False:
+                cooldown = Parent.GetUserCooldownDuration("Gachapon", settings["gachaponcommand"], user)
+                Parent.SendTwitchMessage(settings["languageCooldown"].format(username, cooldown, settings["gachaponcommand"]))
+                return
+
+            if Parent.GetPoints(user) < settings['tryCosts']:
+                Parent.SendTwitchMessage(settings["languageNoMoney"].format(username, settings['tryCosts'], Parent.GetCurrencyName()))
+                return
+            Parent.AddUserCooldown(ScriptName, settings['gachaponcommand'], user, settings['userCooldown'])
+            Parent.RemovePoints(user, int(settings['tryCosts']))
+
+            priceWon = ""
+            for gachaponprice in gachaponprices:
+                chance = gachaponprice["chance"]
+                random.seed(time.clock())
+                randomCount = random.randint(0, 20000) #streamlabs chatbot is drunk. Max random value has always to be double
+                if randomCount <= chance:
+                    priceWon = gachaponprice["name"]
+                    if gachaponprice["type"] == "currency":
+                        if str(gachaponprice["value"]) == "":
+                            gachaponprice["value"] = 100
+                        Parent.AddPoints(user, int(gachaponprice["value"]))
+                    if gachaponprice["type"] == "timeout":
+                        if str(gachaponprice["value"]) == "":
+                            gachaponprice["value"] = 1
+                        Parent.SendTwitchMessage("/timeout "+username+" "+str(gachaponprice["value"]))
+                    if gachaponprice["type"] == "steamkey":
+                       randomSteamKey = GetRandomSteamKeys()
+                       if randomSteamKey == None:
+                           errorMessage = settings["languageKeyError"]
+                           Parent.SendTwitchMessage(errorMessage)
+                           AddPriceToHistory(username, priceWon, errorMessage)
+                           return
+                       else:
+                           priceWon = priceWon + " :: " + randomSteamKey["game"] + ". " + settings["languageSteamKeyWhisperPublic"]
+                           Parent.SendStreamWhisper(user, settings["languageSteamKeyWhisper"].format(username, randomSteamKey["game"], randomSteamKey["key"]))
+
+                    if gachaponprice["sound"] != "":
+                        soundfile = os.path.join(os.path.dirname(__file__), gachaponprice["sound"])
+                        Parent.PlaySound(soundfile, settings['soundVolume'])
+                    chanceFormated = round(float(gachaponprice["chance"] / 100), 2)
+                    Parent.SendTwitchMessage(settings["languageWin"].format(username,str(settings['tryCosts']), Parent.GetCurrencyName(), priceWon, str(chanceFormated)))
+                    break
+
+            if priceWon == "":
+                Parent.SendTwitchMessage(settings["languageWin"].format(username,str(settings['tryCosts']), Parent.GetCurrencyName(), settings["languageNothing"], "?"))
     return
 
 

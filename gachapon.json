@@ -1,0 +1,3 @@
+[
+  {"name": "Timeout 1h Yourself", "chance": 1, "type": "timeout", "value": "3600", "jackpotAmount": 0, "sound": "v"}
+]

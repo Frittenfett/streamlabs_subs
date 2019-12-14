@@ -93,4 +93,70 @@
         "tooltip": "languageJackPotAdded",
         "group": "Language"
     },
+    "enableGachapon": {
+        "type": "checkbox",
+        "value": false,
+        "label": "Enable Gachapon",
+        "tooltip": "Is gachapon system enabled?",
+        "group": "Gachapon"
+    },
+    "tryCosts": {
+        "type": "numberbox",
+        "value": 1000,
+        "label": "Costs for a gachapon round",
+        "tooltip": "Costs for a gachapon round",
+        "group": "Gachapon"
+    },
+    "userCooldown": {
+        "type": "numberbox",
+        "value": 600,
+        "label": "Usercooldown for a gachapon round",
+        "tooltip": "Usercooldown for a gachapon round",
+        "group": "Gachapon"
+    },
+    "soundVolume": {
+        "type": "slider",
+        "value": 1,
+        "min": 0,
+        "max": 1,
+        "ticks": 0.1,
+        "label": "Sound volumne",
+        "tooltip": "",
+        "group": "Gachapon"
+    },
+    "gachaponcommand": {
+        "type": "textbox",
+        "value": "!spin",
+        "label": "Gachapon command",
+        "tooltip": "Command for everyone to use gachapon. Default !spin",
+        "group": "Gachapon"
+    },
+    "languageNoMoney": {
+        "type": "textbox",
+        "value": "@{0} you need atleast {1} {2}!",
+        "label": "languageNoMoney",
+        "tooltip": "",
+        "group": "Gachapon"
+    },
+    "languageCooldown": {
+        "type": "textbox",
+        "value": "@{0} you have to wait {1} seconds to use {2} again!",
+        "label": "languageCooldown",
+        "tooltip": "",
+        "group": "Gachapon"
+    },
+    "languageWin": {
+        "type": "textbox",
+        "value": "@{0} uses {1} {2} and wins: {3} (Chance {4}%)",
+        "label": "languageWin",
+        "tooltip": "",
+        "group": "Gachapon"
+    },
+    "languageNothing": {
+        "type": "textbox",
+        "value": "Nothing",
+        "label": "languageNothing",
+        "tooltip": "",
+        "group": "Gachapon"
+    }
 }
