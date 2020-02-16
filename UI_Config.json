@@ -1,20 +1,6 @@
 ﻿{
     "output_file": "settings.json",
 
-    "blankPriceName": {
-        "type": "textbox",
-        "value": "Trostpreis {0} {1}",
-        "label": "Name of currency price when user gets a blank",
-        "tooltip": "blankPriceName",
-        "group": "General"
-    },
-    "blankCurrencyPrice": {
-        "type": "numberbox",
-        "value": 500,
-        "label": "Blank Currency Amount",
-        "tooltip": "Blank Currency Amount",
-        "group": "General"
-    },
     "onSubGiftGiveGifterThePrice": {
         "type": "checkbox",
         "value": 1,
@@ -52,11 +38,19 @@
     },
     "languageAsThanks": {
         "type": "textbox",
-        "value": "Als kleinen Dank bekommt @{0}: {1}",
+        "value": "Als kleinen Dank bekommt @{0}: {1} (Chance {2}%)",
         "label": "languageAsThanks",
         "tooltip": "languageAsThanks",
         "group": "Language"
     },
+    "languagePrice": {
+        "type": "textbox",
+        "value": "{0} (Chance {1}%)",
+        "label": "languagePrice",
+        "tooltip": "languagePrice",
+        "group": "Language"
+    },
+
 
     "languageJackpot": {
         "type": "textbox",
@@ -98,7 +92,14 @@
         "value": false,
         "label": "Enable Gachapon",
         "tooltip": "Is gachapon system enabled?",
-        "group": "Gachapon"
+        "group": "General"
+    },
+    "enableSub": {
+        "type": "checkbox",
+        "value": false,
+        "label": "Enable Sub",
+        "tooltip": "Is sub system enabled?",
+        "group": "General"
     },
     "tryCosts": {
         "type": "numberbox",
@@ -147,15 +148,8 @@
     },
     "languageWin": {
         "type": "textbox",
-        "value": "@{0} uses {1} {2} and wins: {3} (Chance {4}%)",
+        "value": "@{0} uses {1} {2} and wins:",
         "label": "languageWin",
-        "tooltip": "",
-        "group": "Gachapon"
-    },
-    "languageNothing": {
-        "type": "textbox",
-        "value": "Nothing",
-        "label": "languageNothing",
         "tooltip": "",
         "group": "Gachapon"
     }
