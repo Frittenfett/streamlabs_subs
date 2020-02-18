@@ -19,7 +19,7 @@ ScriptName = "Subs"
 Website = "https://www.twitch.tv/frittenfettsenpai"
 Description = "Sub Event Listener & Gachapon."
 Creator = "frittenfettsenpai"
-Version = "1.0.0"
+Version = "1.0.1"
 
 reUserNotice = re.compile(r"(?:^(?:@(?P<irctags>[^\ ]*)\ )?:tmi\.twitch\.tv\ USERNOTICE)")
 
@@ -153,7 +153,6 @@ def Execute(data):
                 return
             Parent.AddUserCooldown(ScriptName, settings['gachaponcommand'], user, settings['userCooldown'])
             Parent.RemovePoints(user, int(settings['tryCosts']))
-
             message = settings["languageWin"].format(username, str(settings['tryCosts']), Parent.GetCurrencyName())
             CalculateAndSubmitPrice("gachapon", message, user, username, gachaponprices)
     return
@@ -202,21 +201,21 @@ def SetJackPot(value):
 
 def CalculateAndSubmitPrice(type, message, user, username, priceList):
     global settings, jackpot
-
     random.shuffle(priceList)
     #Build up price matrix
     priceMatrix = []
     matrixKey = 0
     chanceMaximum = 0
     for price in priceList:
-        chanceMaximum += price["chance"]
-        limit = matrixKey + price["chance"]
+        chanceMaximum += int(price["chance"])
+        limit = matrixKey + int(price["chance"])
         while matrixKey < limit:
             priceMatrix.append(price)
             matrixKey += 1
 
     #Get price
     random.seed(time.clock())
+
     priceWon = random.choice(priceMatrix)
 
 
@@ -246,7 +245,7 @@ def SubmitPrice(type, message, user, username, priceWon, chanceFormated):
             AddPriceToHistory(type, username, priceWon, errorMessage)
             return
         else:
-            priceWon = priceWon + " :: " + randomSteamKey["game"] + ". " + settings["languageSteamKeyWhisperPublic"]
+            priceWon["name"] = priceWon["name"] + " :: " + randomSteamKey["game"] + ". " + settings["languageSteamKeyWhisperPublic"]
             Parent.SendStreamWhisper(user, settings["languageSteamKeyWhisper"].format(username, randomSteamKey["game"],randomSteamKey["key"]))
     elif priceWon["type"] == "currency4all":
         if str(priceWon["value"]) == "":
