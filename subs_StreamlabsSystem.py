@@ -19,7 +19,7 @@ ScriptName = "Subs"
 Website = "https://www.twitch.tv/frittenfettsenpai"
 Description = "Sub Event Listener & Gachapon."
 Creator = "frittenfettsenpai"
-Version = "1.0.1"
+Version = "1.1.0"
 
 reUserNotice = re.compile(r"(?:^(?:@(?P<irctags>[^\ ]*)\ )?:tmi\.twitch\.tv\ USERNOTICE)")
 
@@ -55,10 +55,15 @@ def Init():
             "languageKeyError": "You would have won a random steam key.... But this streamer is poor and has no keys lel",
             "languageSteamKeyWhisperPublic": "Der Key wurde dir eben via Twitch gewhispert.",
             "languageSteamKeyWhisper": "Hallo {0}, ich wuensch dir viel Spass mit dem Spiel {1}. Der Code hierfuer ist {2}.",
+            "languageJackPotRead": "Im Jackpot liegen aktuell {0} {1}.",
             "languageJackPotAdded": "{0} {1} wurden in den Jackpot hinzugefuegt. Dieser beinhaltet nun {2} {1}.",
             "enableGachapon": False,
             "enableSub": False,
             "gachaponcommand": "!spin",
+            "jackpotReadCommand": "!jackpot",
+            "jackpotAddCommand": "!addjackpot",
+            "jackpotGiveCommand": "!givejackpot",
+            "streamKeyCommand": "!givesteamkey",
             "tryCosts": 1000,
             "userCooldown": 600,
             "soundVolume": 1,
@@ -94,9 +99,6 @@ def Init():
 def Execute(data):
     global prices, settings, jackpot, gachaponprices
 
-    # ========================================
-    # Sub Triggered Events
-    # ========================================
     if data.IsRawData() and data.IsFromTwitch() and settings["enableSub"]:
         usernotice = reUserNotice.search(data.RawData)
         if usernotice:
@@ -136,13 +138,15 @@ def Execute(data):
 
             CalculateAndSubmitPrice("sub", message, recipientId, recipientName, prices)
 
-    # ========================================
-    # Gachapon System
-    # ========================================
     if data.IsChatMessage():
         user = data.User
         username = Parent.GetDisplayName(user)
         if settings["enableGachapon"] and data.GetParam(0).lower() == settings["gachaponcommand"]:
+            levelTmp = Parent.GetRank(user).split(" ")
+            level = int(levelTmp[1])
+            if level < 4:
+                Parent.SendTwitchMessage("{0} du musst erst Level 4 sein!".format(username))
+                return
             if Parent.IsOnUserCooldown("Gachapon", settings["gachaponcommand"], user) and Parent.HasPermission(user, "Caster", "") == False:
                 cooldown = Parent.GetUserCooldownDuration("Gachapon", settings["gachaponcommand"], user)
                 Parent.SendTwitchMessage(settings["languageCooldown"].format(username, cooldown, settings["gachaponcommand"]))
@@ -155,6 +159,25 @@ def Execute(data):
             Parent.RemovePoints(user, int(settings['tryCosts']))
             message = settings["languageWin"].format(username, str(settings['tryCosts']), Parent.GetCurrencyName())
             CalculateAndSubmitPrice("gachapon", message, user, username, gachaponprices)
+        if data.GetParam(0).lower() == settings["jackpotReadCommand"]:
+            Parent.SendTwitchMessage(settings["languageJackPotRead"].format(str(jackpot), Parent.GetCurrencyName()))
+        if data.GetParam(0).lower() == settings["jackpotAddCommand"] and Parent.HasPermission(user, "Caster", ""):
+            jackpot = jackpot + int(data.GetParam(1))
+            SetJackPot(jackpot)
+        if data.GetParam(0).lower() == settings["jackpotGiveCommand"] and Parent.HasPermission(user, "Caster", ""):
+            targetUser = data.GetParam(1)
+            if targetUser != "":
+                Parent.AddPoints(targetUser, jackpot)
+                SetJackPot(0)
+        if data.GetParam(0).lower() == settings["streamKeyCommand"] and Parent.HasPermission(user, "Caster", ""):
+            targetUser = data.GetParam(1)
+            if targetUser != "":
+                randomSteamKey = GetRandomSteamKeys()
+                if randomSteamKey == None:
+                    errorMessage = settings["languageKeyError"]
+                    Parent.SendTwitchMessage(errorMessage)
+                else:
+                    Parent.SendStreamWhisper(targetUser, settings["languageSteamKeyWhisper"].format(targetUser, randomSteamKey["game"], randomSteamKey["key"]))
     return
 
 
@@ -215,9 +238,7 @@ def CalculateAndSubmitPrice(type, message, user, username, priceList):
 
     #Get price
     random.seed(time.clock())
-
     priceWon = random.choice(priceMatrix)
-
 
     chanceFormated = round(float(priceWon["chance"] / float(chanceMaximum) * 100), 2)
 

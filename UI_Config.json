@@ -87,6 +87,13 @@
         "tooltip": "languageJackPotAdded",
         "group": "Language"
     },
+    "languageJackPotRead": {
+        "type": "textbox",
+        "value": "Im Jackpot liegen aktuell {0} {1}.",
+        "label": "languageJackPotRead",
+        "tooltip": "languageJackPotRead",
+        "group": "Language"
+    },
     "enableGachapon": {
         "type": "checkbox",
         "value": false,
@@ -108,6 +115,41 @@
         "tooltip": "Costs for a gachapon round",
         "group": "Gachapon"
     },
+    "gachaponcommand": {
+        "type": "textbox",
+        "value": "!spin",
+        "label": "Gachapon command",
+        "tooltip": "Command for everyone to use gachapon. Default !spin",
+        "group": "Command"
+    },
+    "jackpotReadCommand": {
+        "type": "textbox",
+        "value": "!jackpot",
+        "label": "Get jackpot amount",
+        "tooltip": "Command for everyone to see the amount of jackpot. Default !jackpot",
+        "group": "Command"
+    },
+    "jackpotAddCommand": {
+        "type": "textbox",
+        "value": "!addjackpot",
+        "label": "Add X currency to Jackpot command",
+        "tooltip": "Command for streamer to add x currency into jackpot. Default !jackpotAddCommand",
+        "group": "Command"
+    },
+    "jackpotGiveCommand": {
+        "type": "textbox",
+        "value": "!givejackpot",
+        "label": "Give Jackpot Command",
+        "tooltip": "Command for streamer to give user x the whole jackpot",
+        "group": "Command"
+    },
+    "streamKeyCommand": {
+        "type": "textbox",
+        "value": "!givesteamkey",
+        "label": "Give SteamKey Command",
+        "tooltip": "Command for streamer to give user x a random steam key",
+        "group": "Command"
+    },
     "userCooldown": {
         "type": "numberbox",
         "value": 600,
@@ -123,13 +165,6 @@
         "ticks": 0.1,
         "label": "Sound volumne",
         "tooltip": "",
-        "group": "Gachapon"
-    },
-    "gachaponcommand": {
-        "type": "textbox",
-        "value": "!spin",
-        "label": "Gachapon command",
-        "tooltip": "Command for everyone to use gachapon. Default !spin",
         "group": "Gachapon"
     },
     "languageNoMoney": {
