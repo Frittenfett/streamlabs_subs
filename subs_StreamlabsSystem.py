@@ -142,11 +142,6 @@ def Execute(data):
         user = data.User
         username = Parent.GetDisplayName(user)
         if settings["enableGachapon"] and data.GetParam(0).lower() == settings["gachaponcommand"]:
-            levelTmp = Parent.GetRank(user).split(" ")
-            level = int(levelTmp[1])
-            if level < 4:
-                Parent.SendTwitchMessage("{0} du musst erst Level 4 sein!".format(username))
-                return
             if Parent.IsOnUserCooldown("Gachapon", settings["gachaponcommand"], user) and Parent.HasPermission(user, "Caster", "") == False:
                 cooldown = Parent.GetUserCooldownDuration("Gachapon", settings["gachaponcommand"], user)
                 Parent.SendTwitchMessage(settings["languageCooldown"].format(username, cooldown, settings["gachaponcommand"]))
