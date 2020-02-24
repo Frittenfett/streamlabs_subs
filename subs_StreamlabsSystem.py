@@ -19,7 +19,7 @@ ScriptName = "Subs"
 Website = "https://www.twitch.tv/frittenfettsenpai"
 Description = "Sub Event Listener & Gachapon."
 Creator = "frittenfettsenpai"
-Version = "1.1.0"
+Version = "1.1.1"
 
 reUserNotice = re.compile(r"(?:^(?:@(?P<irctags>[^\ ]*)\ )?:tmi\.twitch\.tv\ USERNOTICE)")
 
@@ -63,7 +63,7 @@ def Init():
             "jackpotReadCommand": "!jackpot",
             "jackpotAddCommand": "!addjackpot",
             "jackpotGiveCommand": "!givejackpot",
-            "streamKeyCommand": "!givesteamkey",
+            "steamKeyCommand": "!givesteamkey",
             "tryCosts": 1000,
             "userCooldown": 600,
             "soundVolume": 1,
@@ -141,7 +141,8 @@ def Execute(data):
     if data.IsChatMessage():
         user = data.User
         username = Parent.GetDisplayName(user)
-        if settings["enableGachapon"] and data.GetParam(0).lower() == settings["gachaponcommand"]:
+        command = data.GetParam(0).lower()
+        if settings["enableGachapon"] and command == settings["gachaponcommand"]:
             if Parent.IsOnUserCooldown("Gachapon", settings["gachaponcommand"], user) and Parent.HasPermission(user, "Caster", "") == False:
                 cooldown = Parent.GetUserCooldownDuration("Gachapon", settings["gachaponcommand"], user)
                 Parent.SendTwitchMessage(settings["languageCooldown"].format(username, cooldown, settings["gachaponcommand"]))
@@ -154,19 +155,17 @@ def Execute(data):
             Parent.RemovePoints(user, int(settings['tryCosts']))
             message = settings["languageWin"].format(username, str(settings['tryCosts']), Parent.GetCurrencyName())
             CalculateAndSubmitPrice("gachapon", message, user, username, gachaponprices)
-        if data.GetParam(0).lower() == settings["jackpotReadCommand"]:
-            Parent.SendTwitchMessage(settings["languageJackPotRead"].format(str(jackpot), Parent.GetCurrencyName()))
-        if data.GetParam(0).lower() == settings["jackpotAddCommand"] and Parent.HasPermission(user, "Caster", ""):
-            jackpot = jackpot + int(data.GetParam(1))
-            SetJackPot(jackpot)
-        if data.GetParam(0).lower() == settings["jackpotGiveCommand"] and Parent.HasPermission(user, "Caster", ""):
+        if Parent.HasPermission(user, "Caster", ""):
             targetUser = data.GetParam(1)
-            if targetUser != "":
+            if command == settings["jackpotReadCommand"]:
+                Parent.SendTwitchMessage(settings["languageJackPotRead"].format(str(jackpot), Parent.GetCurrencyName()))
+            if command == settings["jackpotAddCommand"]:
+                jackpot = jackpot + int(data.GetParam(1))
+                SetJackPot(jackpot)
+            if command == settings["jackpotGiveCommand"] and targetUser != "":
                 Parent.AddPoints(targetUser, jackpot)
                 SetJackPot(0)
-        if data.GetParam(0).lower() == settings["streamKeyCommand"] and Parent.HasPermission(user, "Caster", ""):
-            targetUser = data.GetParam(1)
-            if targetUser != "":
+            if command == settings["steamKeyCommand"] and targetUser != "":
                 randomSteamKey = GetRandomSteamKeys()
                 if randomSteamKey == None:
                     errorMessage = settings["languageKeyError"]
