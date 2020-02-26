@@ -19,7 +19,7 @@ ScriptName = "Subs"
 Website = "https://www.twitch.tv/frittenfettsenpai"
 Description = "Sub Event Listener & Gachapon."
 Creator = "frittenfettsenpai"
-Version = "1.1.1"
+Version = "1.1.2"
 
 reUserNotice = re.compile(r"(?:^(?:@(?P<irctags>[^\ ]*)\ )?:tmi\.twitch\.tv\ USERNOTICE)")
 
@@ -143,14 +143,15 @@ def Execute(data):
         username = Parent.GetDisplayName(user)
         command = data.GetParam(0).lower()
         if settings["enableGachapon"] and command == settings["gachaponcommand"]:
-            if Parent.IsOnUserCooldown("Gachapon", settings["gachaponcommand"], user) and Parent.HasPermission(user, "Caster", "") == False:
-                cooldown = Parent.GetUserCooldownDuration("Gachapon", settings["gachaponcommand"], user)
+            if Parent.IsOnUserCooldown(ScriptName, settings["gachaponcommand"], user) and Parent.HasPermission(user, "Caster", "") == False:
+                cooldown = Parent.GetUserCooldownDuration(ScriptName, settings["gachaponcommand"], user)
                 Parent.SendTwitchMessage(settings["languageCooldown"].format(username, cooldown, settings["gachaponcommand"]))
                 return
 
             if Parent.GetPoints(user) < settings['tryCosts']:
                 Parent.SendTwitchMessage(settings["languageNoMoney"].format(username, settings['tryCosts'], Parent.GetCurrencyName()))
                 return
+
             Parent.AddUserCooldown(ScriptName, settings['gachaponcommand'], user, settings['userCooldown'])
             Parent.RemovePoints(user, int(settings['tryCosts']))
             message = settings["languageWin"].format(username, str(settings['tryCosts']), Parent.GetCurrencyName())
@@ -172,6 +173,7 @@ def Execute(data):
                     Parent.SendTwitchMessage(errorMessage)
                 else:
                     Parent.SendStreamWhisper(targetUser, settings["languageSteamKeyWhisper"].format(targetUser, randomSteamKey["game"], randomSteamKey["key"]))
+                    Parent.SendTwitchMessage(username+ " gewinnt den Steam Key von " + randomSteamKey["game"] + ". " + settings["languageSteamKeyWhisperPublic"])
     return
 
 
@@ -182,11 +184,11 @@ def Tick():
     return
 
 
-def AddPriceToHistory(type, receiver, price, message):
+def AddPriceToHistory(eventType, receiver, price, message):
     now = datetime.datetime.now()
     datafile = os.path.join(os.path.dirname(__file__), "data_history.txt")
     file = open(datafile, "a")
-    file.write(str(now.strftime("%d.%m.%Y %H:%M:%S")) + " " + type + " " + receiver + " - " + price + " - " + message + " \n")
+    file.write(str(now.strftime("%d.%m.%Y %H:%M:%S")) + " " + eventType + " " + receiver + " - " + price + " - " + message + " \n")
     file.close()
     return
 
@@ -207,11 +209,13 @@ def GetRandomSteamKeys():
         return None
 
 def SetJackPot(value):
+    global jackpot
     datafile = os.path.join(os.path.dirname(__file__), "data_jackpot.txt")
     try:
         with codecs.open(datafile, encoding="utf-8-sig", mode="w") as f:
             f.write(str(value))
             f.close()
+            jackpot = value
     except:
         Parent.SendTwitchMessage("Jackpot could not be setted. Ahouh?")
 
@@ -257,7 +261,7 @@ def SubmitPrice(type, message, user, username, priceWon, chanceFormated):
         if randomSteamKey == None:
             errorMessage = settings["languageKeyError"]
             Parent.SendTwitchMessage(errorMessage)
-            AddPriceToHistory(type, username, priceWon, errorMessage)
+            AddPriceToHistory(type, username, priceWon["name"], errorMessage)
             return
         else:
             priceWon["name"] = priceWon["name"] + " :: " + randomSteamKey["game"] + ". " + settings["languageSteamKeyWhisperPublic"]
@@ -277,7 +281,7 @@ def SubmitPrice(type, message, user, username, priceWon, chanceFormated):
         message = message + settings["languageJackpot"].format(username, str(jackpot), Parent.GetCurrencyName())
         Parent.SendTwitchMessage(message)
         SetJackPot(0)
-        AddPriceToHistory(type, username, priceWon, message)
+        AddPriceToHistory(type, username, priceWon["name"], message)
         return
 
     jackpotPriceValue = 0
@@ -300,4 +304,5 @@ def SubmitPrice(type, message, user, username, priceWon, chanceFormated):
         SetJackPot(jackpot)
         message = message + ". " + settings["languageJackPotAdded"].format(str(jackpotPriceValue), Parent.GetCurrencyName(), str(jackpot))
     Parent.SendTwitchMessage(message)
+    AddPriceToHistory(type, username, priceWon["name"], message)
     return

@@ -9,3 +9,5 @@
 * v0.9.0 Put everything from the gachapon repository to this one
 * v1.0.0 Refactore and optimize random calculation
 * v1.1.0 Add Steam Key
+* v1.1.1 AAAAAAAAAAAAAAAAA
+* v1.1.2 More of AAAAAAAAAAAAAAAAA
