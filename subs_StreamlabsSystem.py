@@ -19,7 +19,7 @@ ScriptName = "Subs"
 Website = "https://www.twitch.tv/frittenfettsenpai"
 Description = "Sub Event Listener & Gachapon."
 Creator = "frittenfettsenpai"
-Version = "1.2.0"
+Version = "1.2.1"
 
 reUserNotice = re.compile(r"(?:^(?:@(?P<irctags>[^\ ]*)\ )?:tmi\.twitch\.tv\ USERNOTICE)")
 
@@ -136,12 +136,12 @@ def Execute(data):
                 message = settings["languagePreMessageResub"].format(tags["login"], str(tags["msg-param-cumulative-months"]))
                 recipientId = tags["login"]
                 recipientName = tags["display-name"]
-                UpdateUserStrike(recipientName, str(tags["msg-param-cumulative-months"]))
+                UpdateUserStrike(strikes, recipientName, str(tags["msg-param-cumulative-months"]))
             elif tags["msg-id"] == "sub":
                 message = settings["languagePreMessageSub"].format(tags["login"])
                 recipientId = tags["login"]
                 recipientName = tags["display-name"]
-                UpdateUserStrike(recipientName, "1")
+                UpdateUserStrike(strikes, recipientName, "1")
             else:
                 return
 
@@ -201,7 +201,7 @@ def AddPriceToHistory(eventType, receiver, price, message):
     file.close()
     return
 
-def UpdateUserStrike(user, strikeCount):
+def UpdateUserStrike(strikes, user, strikeCount):
     if strikes[user] == strikeCount:
         Parent.SendStreamWhisper(Parent.GetChannelName(), user + " already got the reward")
     else:
