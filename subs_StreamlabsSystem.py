@@ -19,7 +19,7 @@ ScriptName = "Subs"
 Website = "https://www.twitch.tv/frittenfettsenpai"
 Description = "Sub Event Listener & Gachapon."
 Creator = "frittenfettsenpai"
-Version = "1.1.2"
+Version = "1.2.0"
 
 reUserNotice = re.compile(r"(?:^(?:@(?P<irctags>[^\ ]*)\ )?:tmi\.twitch\.tv\ USERNOTICE)")
 
@@ -27,12 +27,13 @@ reUserNotice = re.compile(r"(?:^(?:@(?P<irctags>[^\ ]*)\ )?:tmi\.twitch\.tv\ USE
 #   [Required] Intialize Data (Only called on Load)
 # ---------------------------------------
 def Init():
-    global prices, settings, jackpot, steamkeys, gachaponprices
+    global prices, settings, jackpot, steamkeys, gachaponprices, strikes
     pricesfile = os.path.join(os.path.dirname(__file__), "data_prices.json")
     jackpotfile = os.path.join(os.path.dirname(__file__), "data_jackpot.txt")
     steamkeysfile = os.path.join(os.path.dirname(__file__), "data_steamkeys.json")
     settingsfile = os.path.join(os.path.dirname(__file__), "settings.json")
     gachaponfile = os.path.join(os.path.dirname(__file__), "gachapon.json")
+    strikefile = os.path.join(os.path.dirname(__file__), "data_substrike.json")
 
     try:
         with codecs.open(pricesfile, encoding="utf-8-sig", mode="r") as f:
@@ -90,6 +91,12 @@ def Init():
     except:
         gachaponprices = []
 
+    try:
+        with codecs.open(strikefile, encoding="utf-8-sig", mode="r") as f:
+            strikes = json.load(f, encoding="utf-8")
+    except:
+        strikes = []
+
     return
 
 
@@ -97,7 +104,7 @@ def Init():
 #   [Required] Execute Data / Process Messages
 # ---------------------------------------
 def Execute(data):
-    global prices, settings, jackpot, gachaponprices
+    global prices, settings, jackpot, gachaponprices, strikes
 
     if data.IsRawData() and data.IsFromTwitch() and settings["enableSub"]:
         usernotice = reUserNotice.search(data.RawData)
@@ -129,10 +136,12 @@ def Execute(data):
                 message = settings["languagePreMessageResub"].format(tags["login"], str(tags["msg-param-cumulative-months"]))
                 recipientId = tags["login"]
                 recipientName = tags["display-name"]
+                UpdateUserStrike(recipientName, str(tags["msg-param-cumulative-months"]))
             elif tags["msg-id"] == "sub":
                 message = settings["languagePreMessageSub"].format(tags["login"])
                 recipientId = tags["login"]
                 recipientName = tags["display-name"]
+                UpdateUserStrike(recipientName, "1")
             else:
                 return
 
@@ -190,6 +199,18 @@ def AddPriceToHistory(eventType, receiver, price, message):
     file = open(datafile, "a")
     file.write(str(now.strftime("%d.%m.%Y %H:%M:%S")) + " " + eventType + " " + receiver + " - " + price + " - " + message + " \n")
     file.close()
+    return
+
+def UpdateUserStrike(user, strikeCount):
+    if strikes[user] == strikeCount:
+        Parent.SendStreamWhisper(Parent.GetChannelName(), user + " already got the reward")
+    else:
+        strikes[user] = strikeCount
+
+        datafile = os.path.join(os.path.dirname(__file__), "data_userstrike.json")
+        file = open(datafile, "a")
+        file.write(json.dumps(strikes))
+        file.close()
     return
 
 def GetRandomSteamKeys():
