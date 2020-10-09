@@ -19,7 +19,7 @@ ScriptName = "Subs"
 Website = "https://www.twitch.tv/frittenfettsenpai"
 Description = "Sub Event Listener & Gachapon."
 Creator = "frittenfettsenpai"
-Version = "1.2.1"
+Version = "1.2.2"
 
 reUserNotice = re.compile(r"(?:^(?:@(?P<irctags>[^\ ]*)\ )?:tmi\.twitch\.tv\ USERNOTICE)")
 
@@ -95,7 +95,7 @@ def Init():
         with codecs.open(strikefile, encoding="utf-8-sig", mode="r") as f:
             strikes = json.load(f, encoding="utf-8")
     except:
-        strikes = []
+        strikes = {}
 
     return
 
