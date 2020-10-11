@@ -12,3 +12,4 @@
 * v1.1.1 AAAAAAAAAAAAAAAAA
 * v1.1.2 More of AAAAAAAAAAAAAAAAA
 * v1.2.0 Strike Array (untested)
+* v1.2.3 Many bugfixes and make !jackpot public

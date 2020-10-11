@@ -19,7 +19,7 @@ ScriptName = "Subs"
 Website = "https://www.twitch.tv/frittenfettsenpai"
 Description = "Sub Event Listener & Gachapon."
 Creator = "frittenfettsenpai"
-Version = "1.2.2"
+Version = "1.2.3"
 
 reUserNotice = re.compile(r"(?:^(?:@(?P<irctags>[^\ ]*)\ )?:tmi\.twitch\.tv\ USERNOTICE)")
 
@@ -165,10 +165,10 @@ def Execute(data):
             Parent.RemovePoints(user, int(settings['tryCosts']))
             message = settings["languageWin"].format(username, str(settings['tryCosts']), Parent.GetCurrencyName())
             CalculateAndSubmitPrice("gachapon", message, user, username, gachaponprices)
+        if command == settings["jackpotReadCommand"]:
+            Parent.SendTwitchMessage(settings["languageJackPotRead"].format(str(jackpot), Parent.GetCurrencyName()))
         if Parent.HasPermission(user, "Caster", ""):
             targetUser = data.GetParam(1)
-            if command == settings["jackpotReadCommand"]:
-                Parent.SendTwitchMessage(settings["languageJackPotRead"].format(str(jackpot), Parent.GetCurrencyName()))
             if command == settings["jackpotAddCommand"]:
                 jackpot = jackpot + int(data.GetParam(1))
                 SetJackPot(jackpot)
