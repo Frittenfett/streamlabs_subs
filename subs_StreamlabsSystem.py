@@ -19,7 +19,7 @@ ScriptName = "Subs"
 Website = "https://www.twitch.tv/frittenfettsenpai"
 Description = "Sub Event Listener & Gachapon."
 Creator = "frittenfettsenpai"
-Version = "1.2.3"
+Version = "1.2.4"
 
 reUserNotice = re.compile(r"(?:^(?:@(?P<irctags>[^\ ]*)\ )?:tmi\.twitch\.tv\ USERNOTICE)")
 
@@ -106,46 +106,54 @@ def Init():
 def Execute(data):
     global prices, settings, jackpot, gachaponprices, strikes
 
-    if data.IsRawData() and data.IsFromTwitch() and settings["enableSub"]:
+    if data.IsRawData() and data.IsFromTwitch():
         usernotice = reUserNotice.search(data.RawData)
         if usernotice:
             # Parse IRCv3 tags in a dictionary
             tags = dict(re.findall(r"([^=]+)=([^;]*)(?:;|$)", usernotice.group("irctags")))  # https://dev.twitch.tv/docs/irc/tags/
 
-            responsefile = os.path.join(os.path.dirname(__file__), "response.txt")
-            file = open(responsefile, "a")
-            file.write(str(tags) + "\n" + str(usernotice) + " \n\n\n")
-            file.close()
+            if settings["enableSub"]:
+                responsefile = os.path.join(os.path.dirname(__file__), "response.txt")
+                file = open(responsefile, "a")
+                file.write(str(tags) + "\n" + str(usernotice) + " \n\n\n")
+                file.close()
 
-            if tags["msg-id"] == "subgift":
-                message = settings["languagePreMessageSubgift"].format(tags["login"], tags["msg-param-recipient-display-name"])
-                if tags['login'] == "ananonymousgifter":
+                if tags["msg-id"] == "subgift":
+                    message = settings["languagePreMessageSubgift"].format(tags["login"], tags["msg-param-recipient-display-name"])
+                    if tags['login'] == "ananonymousgifter":
+                        recipientId = tags["msg-param-recipient-id"]
+                        recipientName = tags["msg-param-recipient-display-name"]
+                    elif settings["onSubGiftGiveGifterThePrice"]:
+                        recipientId = tags["login"]
+                        recipientName = tags["display-name"]
+                    else:
+                        recipientId = tags["msg-param-recipient-id"]
+                        recipientName = tags["msg-param-recipient-display-name"]
+                elif tags["msg-id"] == "anonsubgift":
+                    message = settings["languagePreMessageAnonSubgift"].format(tags["msg-param-recipient-display-name"])
                     recipientId = tags["msg-param-recipient-id"]
                     recipientName = tags["msg-param-recipient-display-name"]
-                elif settings["onSubGiftGiveGifterThePrice"]:
+                elif tags["msg-id"] == "resub":
+                    message = settings["languagePreMessageResub"].format(tags["login"], str(tags["msg-param-cumulative-months"]))
                     recipientId = tags["login"]
                     recipientName = tags["display-name"]
+                    Parent.SendStreamWhisper(Parent.GetChannelName(), str(tags))
+                    UpdateUserStrike(strikes, recipientName, str(tags["msg-param-cumulative-months"]))
+                elif tags["msg-id"] == "sub":
+                    message = settings["languagePreMessageSub"].format(tags["login"])
+                    recipientId = tags["login"]
+                    recipientName = tags["display-name"]
+                    Parent.SendStreamWhisper(Parent.GetChannelName(), str(tags))
+                    UpdateUserStrike(strikes, recipientName, "1")
                 else:
-                    recipientId = tags["msg-param-recipient-id"]
-                    recipientName = tags["msg-param-recipient-display-name"]
-            elif tags["msg-id"] == "anonsubgift":
-                message = settings["languagePreMessageAnonSubgift"].format(tags["msg-param-recipient-display-name"])
-                recipientId = tags["msg-param-recipient-id"]
-                recipientName = tags["msg-param-recipient-display-name"]
-            elif tags["msg-id"] == "resub":
-                message = settings["languagePreMessageResub"].format(tags["login"], str(tags["msg-param-cumulative-months"]))
-                recipientId = tags["login"]
-                recipientName = tags["display-name"]
-                UpdateUserStrike(strikes, recipientName, str(tags["msg-param-cumulative-months"]))
-            elif tags["msg-id"] == "sub":
-                message = settings["languagePreMessageSub"].format(tags["login"])
-                recipientId = tags["login"]
-                recipientName = tags["display-name"]
-                UpdateUserStrike(strikes, recipientName, "1")
-            else:
-                return
+                    return
 
-            CalculateAndSubmitPrice("sub", message, recipientId, recipientName, prices)
+                CalculateAndSubmitPrice("sub", message, recipientId, recipientName, prices)
+            else:
+                if tags["msg-id"] == "resub":
+                    UpdateUserStrike(strikes, tags["display-name"], str(tags["msg-param-cumulative-months"]))
+                elif tags["msg-id"] == "sub":
+                    UpdateUserStrike(strikes, tags["display-name"], "1")
 
     if data.IsChatMessage():
         user = data.User
@@ -202,6 +210,7 @@ def AddPriceToHistory(eventType, receiver, price, message):
     return
 
 def UpdateUserStrike(strikes, user, strikeCount):
+    Parent.SendStreamWhisper(Parent.GetChannelName(), str(user))
     if strikes[user] == strikeCount:
         Parent.SendStreamWhisper(Parent.GetChannelName(), user + " already got the reward")
     else:
