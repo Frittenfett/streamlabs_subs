@@ -19,7 +19,7 @@ ScriptName = "Subs"
 Website = "https://www.twitch.tv/frittenfettsenpai"
 Description = "Sub Event Listener & Gachapon."
 Creator = "frittenfettsenpai"
-Version = "1.2.5"
+Version = "1.2.6"
 
 reUserNotice = re.compile(r"(?:^(?:@(?P<irctags>[^\ ]*)\ )?:tmi\.twitch\.tv\ USERNOTICE)")
 
@@ -216,8 +216,8 @@ def UpdateUserStrike(strikes, user, strikeCount):
     else:
         strikes[user] = strikeCount
 
-        datafile = os.path.join(os.path.dirname(__file__), "data_userstrike.json")
-        file = open(datafile, "a")
+        datafile = os.path.join(os.path.dirname(__file__), "data_substrike.json")
+        file = open(datafile, "w")
         file.write(json.dumps(strikes))
         file.close()
     return

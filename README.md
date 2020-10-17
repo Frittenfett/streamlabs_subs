@@ -15,3 +15,4 @@
 * v1.2.3 Many bugfixes and make !jackpot public
 * v1.2.4 brainfart
 * v1.2.5 Derby Fix <3
+* v1.2.6 brainfart
