@@ -150,6 +150,13 @@
         "tooltip": "Command for streamer to give user x a random steam key",
         "group": "Command"
     },
+    "smallSteamKeyCommand": {
+        "type": "textbox",
+        "value": "!givesmallsteamkey",
+        "label": "Give SmallSteamKey Command",
+        "tooltip": "Command for streamer to give user x a random steam key",
+        "group": "Command"
+    },
     "userCooldown": {
         "type": "numberbox",
         "value": 600,

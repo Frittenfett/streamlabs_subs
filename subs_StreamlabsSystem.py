@@ -19,7 +19,7 @@ ScriptName = "Subs"
 Website = "https://www.twitch.tv/frittenfettsenpai"
 Description = "Sub Event Listener & Gachapon."
 Creator = "frittenfettsenpai"
-Version = "1.2.6"
+Version = "1.2.7"
 
 reUserNotice = re.compile(r"(?:^(?:@(?P<irctags>[^\ ]*)\ )?:tmi\.twitch\.tv\ USERNOTICE)")
 
@@ -27,10 +27,11 @@ reUserNotice = re.compile(r"(?:^(?:@(?P<irctags>[^\ ]*)\ )?:tmi\.twitch\.tv\ USE
 #   [Required] Intialize Data (Only called on Load)
 # ---------------------------------------
 def Init():
-    global prices, settings, jackpot, steamkeys, gachaponprices, strikes
+    global prices, settings, jackpot, steamkeys, gachaponprices, strikes, cheapsteamkeys
     pricesfile = os.path.join(os.path.dirname(__file__), "data_prices.json")
     jackpotfile = os.path.join(os.path.dirname(__file__), "data_jackpot.txt")
     steamkeysfile = os.path.join(os.path.dirname(__file__), "data_steamkeys.json")
+    cheapsteamkeysfile = os.path.join(os.path.dirname(__file__), "data_steamkeys_cheap.json")
     settingsfile = os.path.join(os.path.dirname(__file__), "settings.json")
     gachaponfile = os.path.join(os.path.dirname(__file__), "gachapon.json")
     strikefile = os.path.join(os.path.dirname(__file__), "data_substrike.json")
@@ -65,6 +66,7 @@ def Init():
             "jackpotAddCommand": "!addjackpot",
             "jackpotGiveCommand": "!givejackpot",
             "steamKeyCommand": "!givesteamkey",
+            "smallSteamKeyCommand": "!givesmallsteamkey",
             "tryCosts": 1000,
             "userCooldown": 600,
             "soundVolume": 1,
@@ -84,6 +86,12 @@ def Init():
             steamkeys = json.load(f, encoding="utf-8")
     except:
         steamkeys = []
+
+    try:
+        with codecs.open(cheapsteamkeysfile, encoding="utf-8-sig", mode="r") as f:
+            cheapsteamkeys = json.load(f, encoding="utf-8")
+    except:
+        cheapsteamkeys = []
 
     try:
         with codecs.open(gachaponfile, encoding="utf-8-sig", mode="r") as f:
@@ -189,6 +197,14 @@ def Execute(data):
                 else:
                     Parent.SendStreamWhisper(targetUser, settings["languageSteamKeyWhisper"].format(targetUser, randomSteamKey["game"], randomSteamKey["key"]))
                     Parent.SendTwitchMessage(username+ " gewinnt den Steam Key von " + randomSteamKey["game"] + ". " + settings["languageSteamKeyWhisperPublic"])
+            if command == settings["smallSteamKeyCommand"] and targetUser != "":
+                randomSteamKey = GetRandomSmallSteamKeys()
+                if randomSteamKey == None:
+                    errorMessage = settings["languageKeyError"]
+                    Parent.SendTwitchMessage(errorMessage)
+                else:
+                    Parent.SendStreamWhisper(targetUser, settings["languageSteamKeyWhisper"].format(targetUser, randomSteamKey["game"], randomSteamKey["key"]))
+                    Parent.SendTwitchMessage(username+ " gewinnt den Steam Key von " + randomSteamKey["game"] + ". " + settings["languageSteamKeyWhisperPublic"])
     return
 
 
@@ -233,6 +249,22 @@ def GetRandomSteamKeys():
     try:
         with codecs.open(datafile, encoding="utf-8-sig", mode="w") as f:
             f.write(json.dumps(steamkeys))
+            f.close()
+            return destiny
+    except:
+        return None
+
+def GetRandomSmallSteamKeys():
+    global cheapsteamkeys
+    if len(cheapsteamkeys) == 0:
+        return None
+
+    destiny = random.choice(cheapsteamkeys)
+    cheapsteamkeys.remove(destiny)
+    datafile = os.path.join(os.path.dirname(__file__), "data_steamkeys_cheap.json")
+    try:
+        with codecs.open(datafile, encoding="utf-8-sig", mode="w") as f:
+            f.write(json.dumps(cheapsteamkeys))
             f.close()
             return destiny
     except:
@@ -288,6 +320,16 @@ def SubmitPrice(type, message, user, username, priceWon, chanceFormated):
         Parent.SendTwitchMessage("/timeout " + username + " " + str(priceWon["value"]))
     elif priceWon["type"] == "steamkey":
         randomSteamKey = GetRandomSteamKeys()
+        if randomSteamKey == None:
+            errorMessage = settings["languageKeyError"]
+            Parent.SendTwitchMessage(errorMessage)
+            AddPriceToHistory(type, username, priceWon["name"], errorMessage)
+            return
+        else:
+            priceWon["name"] = priceWon["name"] + " :: " + randomSteamKey["game"] + ". " + settings["languageSteamKeyWhisperPublic"]
+            Parent.SendStreamWhisper(user, settings["languageSteamKeyWhisper"].format(username, randomSteamKey["game"],randomSteamKey["key"]))
+    elif priceWon["type"] == "smallsteamkey":
+        randomSteamKey = GetRandomSmallSteamKeys()
         if randomSteamKey == None:
             errorMessage = settings["languageKeyError"]
             Parent.SendTwitchMessage(errorMessage)
