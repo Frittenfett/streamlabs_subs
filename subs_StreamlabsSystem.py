@@ -191,7 +191,7 @@ def Execute(data):
                 jackpot = jackpot - tmpJackpot
                 if jackpot < 0:
                     jackpot = 0
-                Parent.AddPoints(targetUser, tmpJackpot)
+                Parent.AddPoints(targetUser.replace("@", ""), tmpJackpot)
                 SetJackPot(jackpot)
             if command == settings["steamKeyCommand"] and targetUser != "":
                 randomSteamKey = GetRandomSteamKeys()
