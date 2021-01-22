@@ -19,7 +19,7 @@ ScriptName = "Subs"
 Website = "https://www.twitch.tv/frittenfettsenpai"
 Description = "Sub Event Listener & Gachapon."
 Creator = "frittenfettsenpai"
-Version = "1.2.7"
+Version = "1.2.8"
 
 reUserNotice = re.compile(r"(?:^(?:@(?P<irctags>[^\ ]*)\ )?:tmi\.twitch\.tv\ USERNOTICE)")
 
@@ -187,8 +187,12 @@ def Execute(data):
                 jackpot = jackpot + int(data.GetParam(1))
                 SetJackPot(jackpot)
             if command == settings["jackpotGiveCommand"] and targetUser != "":
-                Parent.AddPoints(targetUser, jackpot)
-                SetJackPot(0)
+                tmpJackpot = int(data.GetParam(2))
+                jackpot = jackpot - tmpJackpot
+                if jackpot < 0:
+                    jackpot = 0
+                Parent.AddPoints(targetUser, tmpJackpot)
+                SetJackPot(jackpot)
             if command == settings["steamKeyCommand"] and targetUser != "":
                 randomSteamKey = GetRandomSteamKeys()
                 if randomSteamKey == None:
@@ -310,6 +314,14 @@ def CalculateAndSubmitPrice(type, message, user, username, priceList):
 def SubmitPrice(type, message, user, username, priceWon, chanceFormated):
     global settings, jackpot
 
+    if "sound" in priceWon and priceWon["sound"] != "":
+        soundfile = os.path.join(os.path.dirname(__file__), priceWon["sound"])
+        soundVolume = float(priceWon['soundVolume'])
+        if soundVolume == 0 or soundVolume > 1:
+            soundVolume = 1
+        Parent.PlaySound(soundfile, soundVolume)
+
+    priceName = priceWon["name"]
     if priceWon["type"] == "currency":
         if str(priceWon["value"]) == "":
             priceWon["value"] = 100
@@ -318,25 +330,19 @@ def SubmitPrice(type, message, user, username, priceWon, chanceFormated):
         if str(priceWon["value"]) == "":
             priceWon["value"] = 1
         Parent.SendTwitchMessage("/timeout " + username + " " + str(priceWon["value"]))
-    elif priceWon["type"] == "steamkey":
-        randomSteamKey = GetRandomSteamKeys()
+    elif priceWon["type"] == "steamkey" or priceWon["type"] == "smallsteamkey":
+        if priceWon["type"] == "steamkey":
+            randomSteamKey = GetRandomSteamKeys()
+        else:
+            randomSteamKey = GetRandomSmallSteamKeys()
+
         if randomSteamKey == None:
             errorMessage = settings["languageKeyError"]
             Parent.SendTwitchMessage(errorMessage)
-            AddPriceToHistory(type, username, priceWon["name"], errorMessage)
+            AddPriceToHistory(type, username, priceName, errorMessage)
             return
         else:
-            priceWon["name"] = priceWon["name"] + " :: " + randomSteamKey["game"] + ". " + settings["languageSteamKeyWhisperPublic"]
-            Parent.SendStreamWhisper(user, settings["languageSteamKeyWhisper"].format(username, randomSteamKey["game"],randomSteamKey["key"]))
-    elif priceWon["type"] == "smallsteamkey":
-        randomSteamKey = GetRandomSmallSteamKeys()
-        if randomSteamKey == None:
-            errorMessage = settings["languageKeyError"]
-            Parent.SendTwitchMessage(errorMessage)
-            AddPriceToHistory(type, username, priceWon["name"], errorMessage)
-            return
-        else:
-            priceWon["name"] = priceWon["name"] + " :: " + randomSteamKey["game"] + ". " + settings["languageSteamKeyWhisperPublic"]
+            priceName = priceWon["name"] + " :: " + randomSteamKey["game"] + ". " + settings["languageSteamKeyWhisperPublic"]
             Parent.SendStreamWhisper(user, settings["languageSteamKeyWhisper"].format(username, randomSteamKey["game"],randomSteamKey["key"]))
     elif priceWon["type"] == "currency4all":
         if str(priceWon["value"]) == "":
@@ -352,29 +358,22 @@ def SubmitPrice(type, message, user, username, priceWon, chanceFormated):
         Parent.AddPoints(user, int(jackpot))
         message = message + settings["languageJackpot"].format(username, str(jackpot), Parent.GetCurrencyName())
         Parent.SendTwitchMessage(message)
-        SetJackPot(0)
-        AddPriceToHistory(type, username, priceWon["name"], message)
+        SetJackPot(2000)
+        AddPriceToHistory(type, username, priceName, message)
         return
 
     jackpotPriceValue = 0
     if "jackpotAmount" in priceWon and priceWon["jackpotAmount"] > 0:
         jackpotPriceValue = int(priceWon["jackpotAmount"])
 
-    if "sound" in priceWon and priceWon["sound"] != "":
-        soundfile = os.path.join(os.path.dirname(__file__), priceWon["sound"])
-        soundVolume = float(priceWon['soundVolume'])
-        if soundVolume == 0 or soundVolume > 1:
-            soundVolume = 1
-        Parent.PlaySound(soundfile, soundVolume)
-
     if type == "sub":
-        message = message + " " + settings["languageAsThanks"].format(username, priceWon["name"], chanceFormated)
+        message = message + " " + settings["languageAsThanks"].format(username, priceName, chanceFormated)
     else:
-        message = message + " " + settings["languagePrice"].format(priceWon["name"], chanceFormated)
+        message = message + " " + settings["languagePrice"].format(priceName, chanceFormated)
     if jackpotPriceValue > 0:
         jackpot = jackpot + int(jackpotPriceValue)
         SetJackPot(jackpot)
         message = message + ". " + settings["languageJackPotAdded"].format(str(jackpotPriceValue), Parent.GetCurrencyName(), str(jackpot))
     Parent.SendTwitchMessage(message)
-    AddPriceToHistory(type, username, priceWon["name"], message)
+    AddPriceToHistory(type, username, priceName, message)
     return
